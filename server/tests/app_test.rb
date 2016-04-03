@@ -40,12 +40,13 @@ class AppTest < Minitest::Test
   end
 
   def test_user_with_token_creation
-    user = User.create   # no, i want this to test the value not the key
-    User.find(1)
-    response = post("/user", { "CONTENT_TYPE" => "application/json" })
-    assert response.ok?
-    payload = JSON.parse(response.body)
-    binding.pry  # => user.token? false; user.valid? true
+    # user = User.create   # no, i want this to test the value not the key
+    user = User.find(1) # User.find(1) => #<User:0x007fe8f3a035a0 id: 1, token: "3f1e7075799141b3a9fb82f2bf5fd61e", created_at: 2016-04-03 13:42:44 UTC, updated_at: 2016-04-03 13:42:44 UTC>
+    # response = post("/user", { "CONTENT_TYPE" => "application/json" })
+    # assert response.ok?
+    # binding.pry  # response.body => "{}"   # response.header => {"Content-Type"=>"application/json", "Content-Length"=>"2", "X-Content-Type-Options"=>"nosniff"}
+    # payload = JSON.parse(response.body)
+    # binding.pry  # => user.token? false; user.valid? true
 
     # user.update_attribute   # persistence methods available!
     #     .update_attributes
@@ -60,23 +61,77 @@ class AppTest < Minitest::Test
     #     .id?
 
     # User.where(token: token)
-    # assert user.has_token?
+    assert true, user.token?
   end
   # User.find() # save the token on that user
   # User.create(token: token)
   # User.where(token:
 
 
-  # def test_get_returns_empty_json_when_no_taco_tweet
-  #   response = get "/tweets"
+  # def test_get_returns_empty_json_when_no_story
+  #   response = get "/storyname"
   #   json = JSON.parse(response.body)
-  #   assert_equal [], json
+  #   assert_equal [], json   # returns true when the db is cleared
   # end
-  #
+
+
+  def test_story_create
+    # skip
+    story = Story.create(name: "rando story name")
+    response = get "/storyname"
+    json = JSON.parse(response.body)
+    assert_equal story.name, json.last["name"]
+    # binding.pry
+  end
+  # def test_create_a_story
+  #     story = Story.create(body: "Hello Taco!")
+  #     assert_equal Story, story.class
+  #     assert_equal false, story.id == nil
+  # end
+
   # def test_get_a_list_of_tweets
   #   tweet = Tweet.create(body: "Hello Taco!")
   #   response = get "/tweets"
   #   json = JSON.parse(response.body)
   #   assert_equal tweet.body, json.last["body"]
   # end
+
+  def test_story_has_id
+    Story.create(name: "rando story name")
+    response = get "/storyname"
+    json = JSON.parse(response.body)
+    assert_equal true, json.first.has_key?("id")
+  end
+
+  def test_story_has_name
+    # skip
+    new_story = Story.create(name: "bizarro adventure")
+    response = get "/storyname"
+    json = JSON.parse(response.body)
+    assert_equal new_story.name, json.last["name"]
+  end
+
+# 3:
+  def test_can_update_a_story
+    # skip
+    Story.where(name: "bizarro adventure")
+    response = patch name: "excellent adventure" # "/storyname"
+    json = JSON.parse(response.body)
+    # patch ????
+    assert_equal new_story.name, json.last["name"]
+  end
+# If the goal of patch is to "update/change" a an item, the best way I see is, create a Story/Step and
+# then attempt to change it's name with your patch request.   And check your servers response that it now
+# has the new name, as well as that name being in the database
+
+
+# 4:
+  def test_can_delete_a_story
+    skip
+    story = Story.create
+    delete "/storyname/#{story.id}"
+    response = last_response.body
+    assert_equal false, Story.exists?(story.id)
+  end
+
 end

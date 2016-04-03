@@ -4,7 +4,7 @@ require "rubygems"
 require "bundler/setup"
 require "sinatra"
 require "json"
-
+require "pry"
 require_relative "lib/adventure" # database.rb should be inherited from adventure which requires it
   # ActiveRecord::NoDatabaseError: FATAL:  database "create_your_own_adventure_test" does not exist
 
@@ -67,7 +67,7 @@ end
 post '/user' do   # i need to give ryan the auth token in the header
   user = User.where(token: request.env["HTTP_AUTHORIZATION"]).first
   halt 403, 'no adventure today' unless user
-  adventure = Adventure  #<--need a module there to replace TacoTweet
+  adventure = Adventure  #<--need a module there to replace TacoTweet ?
   [200, adventure.to_json]
 end
 
@@ -77,20 +77,42 @@ end
 # User.where(token:
 
 
-#1 Create a new Story record with a title   # Ryan needs an object(hash) with the name of the story and an id for the story
-post '/storyname' do     # 500 server error for POSTs?
-  # story.create(title)   Story title
+get '/storyname' do
+  # halt_unless_user
+  story = Story.all
+  [200, story.to_json]
 end
 
-# #2 Read a Story to json
-# get '/storyread' do       # 400 Bad Request; for invalid user input?
-#   # story_id.read.to_json  reading a story
-# end
-#
-# #3 Update a Story record
-# patch '/updatestory' do   # 500 like for POSTs
-#   # story_id update partial
-# end
+###########
+# after you have added your authentication and are trying to write tests for your subsequent `POST` requests.
+# Your `post` requests will now need to have the authentication token passed into them so that can do their things.
+# You can trace back above to see how to add headers to your mock requests. But the key things to remember is that
+# when you do the `header()`, ​_don’t_​ include prepend your header name with `HTTP_` - meaning,
+# use `header("AUTHORIZATION", value)` and not `header("HTTP_AUTHORIZATION", value)`. This is because Rack adds
+# the `HTTP_` part for you.
+###########
+
+#1 Create a new Story record with a title   # Ryan needs an object(hash) with the name of the story and an id for the story
+  # backend sends id of story just created
+post '/storyname' do     # 500 server error for POSTs?
+  story = Story.create(name: name)   # Story title
+  payload = JSON.parse(request.body.read)
+  Story.create(payload).to_json
+end
+
+#2 Read a Story to json
+  # front end sends api requests to backend
+get '/storyread' do       # 400 Bad Request; for invalid user input?
+  # story_id.read.to_json  reading a story
+end
+
+#3 Update a Story record
+patch '/storyname' do   # 500 like for POSTs
+  # story_id update partial
+  payload = JSON.parse(request.body.read)
+  # adventure = Adventure.find(params["id"]).update(payload).to_json
+  story = Story.find(params["story_id"]).update(payload).to_json
+end
 #
 # #4 Destroy a Story record
 # delete '/removestory' do       # 303 See Other (since HTTP/1.1). The response to the request can be found under another URI using a GET method. When received in response to a POST (or PUT/DELETE), the client should presume that the server has received the data and should issue a redirect with a separate GET message.[28]
@@ -124,22 +146,37 @@ end
 
 # 405 Method Not Allowed. A request method is not supported for the requested resource; for example, a GET request on a form which requires data to be presented via POST, or a PUT request on a read-only resource.
 
-#6 Read a Step to JSON
-# get '/stepread' do
-#   # step_id.read.to_json ?
-# end
+# 6 Read a Step to JSON
+post '/step/:id' do
+  payload = JSON.parse(request.body.read)
+  step = Step.create(payload)
+  step.to_json
+end
 #
-# #7 Update a Step record
-# patch '/updatestep' do
-#   # step_id  partial update
+#7 Update a Step record
+patch '/step/:id' do
+  # step_id  partial update
+  payload = JSON.parse(request.body.read)
+  step = Step.find(params["id"])
+  step.update(payload)
+  step.to_json
+end
+#
+# 8 Destroy a Step record
+delete '/step/:id' do  # or delete “/step_del/#{step.id}" ?
+  # delete step record from db
+  step = Step.find(params["id"])
+  step.destory!
+  # payload = JSON.parse(request.body.read)
+  # step_record = Step.find(params["id"]).update(payload)
+  # step_record.to_json
+end
+# mike's working version:
+# delete "/story_del/:id" do
+#   story = Adventure::Story.find(params["id"])
+#   story.destroy!
 # end
-# #8 Destroy a Step record
-# # delete '/delete/:record' do
-# #   # delete step record from db
-# #   payload = JSON.parse(request.body.read)
-# #   step_record = Step.find(params["id"]).update(payload)
-# #   step_record.to_json
-# # end
+
 #
 # #9 Read next Step, for a given Step, if one is present
 # get '/nextstep'
