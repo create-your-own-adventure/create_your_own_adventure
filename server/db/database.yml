@@ -7,11 +7,11 @@ postgres_defaults: &postgres_defaults
 development:
   <<: *postgres_defaults
   database: create_your_own_adventure
-  username: rposborne
+  username: stevefake
   password: iamthedefaultpassword
 
 test:
   <<: *postgres_defaults
   database: create_your_own_adventure_test
-  username: rposborne
+  username: stevefake
   password: iamthedefaultpassword
