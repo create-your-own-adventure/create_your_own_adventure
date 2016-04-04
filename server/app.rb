@@ -196,7 +196,8 @@ end
 
 #
 #9 Read next Step, for a given Step, if one is present
-get '/next_step/:step_id'
-  # step_id.read   conditional until?
+get '/next_step/:step_id' do
+  step = Adventure::Step.find(params["id"])
+  step.id.read  # conditional until?
   # looks up next corresponding step in the db
 end
