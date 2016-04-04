@@ -4,7 +4,7 @@ require "rubygems"
 require "bundler/setup"
 require "sinatra"
 require "json"
-require "pry"
+# require "pry"
 require_relative "lib/adventure" # database.rb should be inherited from adventure which requires it
   # ActiveRecord::NoDatabaseError: FATAL:  database "create_your_own_adventure_test" does not exist
 
@@ -16,6 +16,11 @@ helpers do
   def authenticated
     halt 401, {msg: "go away!"}.to_json unless current_user
   end
+
+  def current_session
+    Adventure::Session.where(token: request.env["HTTP_AUTHORIZATION"]).first
+  end
+
 end
 
 set :static, true
@@ -67,7 +72,7 @@ end
 post '/user' do   # i need to give ryan the auth token in the header
   user = User.where(token: request.env["HTTP_AUTHORIZATION"]).first
   halt 403, 'no adventure today' unless user
-  adventure = Adventure  #<--need a module there to replace TacoTweet ?
+  adventure = Adventure::Adventure  #<--Adventure is the module, like TacoTweet
   [200, adventure.to_json]
 end
 
@@ -94,8 +99,8 @@ end
 
 #1 Create a new Story record with a title   # Ryan needs an object(hash) with the name of the story and an id for the story
   # backend sends id of story just created
-post '/storyname' do     # 500 server error for POSTs?
-  story = Story.create(name: name)   # Story title
+post '/story' do     # 500 server error for POSTs?
+  story = Story.create(:name)   # Story title
   payload = JSON.parse(request.body.read)
   Story.create(payload).to_json
 end
@@ -107,18 +112,30 @@ get '/storyread' do       # 400 Bad Request; for invalid user input?
 end
 
 #3 Update a Story record
-patch '/storyname' do   # 500 like for POSTs
+patch '/storyupdate/' do   # 500 like for POSTs
   # story_id update partial
   payload = JSON.parse(request.body.read)
   # adventure = Adventure.find(params["id"]).update(payload).to_json
-  story = Story.find(params["story_id"]).update(payload).to_json
+  story = Story.find(params["name"]).update(payload).to_json
 end
-#
-# #4 Destroy a Story record
-# delete '/removestory' do       # 303 See Other (since HTTP/1.1). The response to the request can be found under another URI using a GET method. When received in response to a POST (or PUT/DELETE), the client should presume that the server has received the data and should issue a redirect with a separate GET message.[28]
-#   #what goes in this method?
-#   # story_id.destroy
-# end
+# Update a user's adventure
+patch "/story/:id" do
+  client_token = request.env["HTTP_AUTHORIZATION"]
+  user = Adventure::User.where(token: client_token).first
+  unless user == nil
+    payload = JSON.parse(request.body.read)
+    story = Adventure::Story.find(params["id"]).update(payload).to_json
+  else
+     halt 401, {msg: "Unauthorized"}.to_json
+  end
+end
+
+
+#4 Destroy a Story record
+delete "/story_delete/:id" do       # 303 See Other (since HTTP/1.1). The response to the request can be found under another URI using a GET method. When received in response to a POST (or PUT/DELETE), the client should presume that the server has received the data and should issue a redirect with a separate GET message.[28]
+  story = Story.find(:id)
+  story.id.destroy!
+end
 
 #5 Create a Step in a story which has the following properties:
 # whether or not this step is the start of the story
@@ -146,6 +163,11 @@ end
 
 # 405 Method Not Allowed. A request method is not supported for the requested resource; for example, a GET request on a form which requires data to be presented via POST, or a PUT request on a read-only resource.
 
+# Ryan needs the name of the step
+ # stepname
+ # data.optiona
+ # data.optionb
+
 # 6 Read a Step to JSON
 post '/step/:id' do
   payload = JSON.parse(request.body.read)
@@ -161,24 +183,20 @@ patch '/step/:id' do
   step.update(payload)
   step.to_json
 end
-#
+
 # 8 Destroy a Step record
-delete '/step/:id' do  # or delete “/step_del/#{step.id}" ?
+delete '/step_deletion/:id' do  # or delete “/step_del/#{step.id}" ?
   # delete step record from db
-  step = Step.find(params["id"])
+  step = Adventure::Step.find(params["id"])
   step.destory!
   # payload = JSON.parse(request.body.read)
   # step_record = Step.find(params["id"]).update(payload)
   # step_record.to_json
 end
-# mike's working version:
-# delete "/story_del/:id" do
-#   story = Adventure::Story.find(params["id"])
-#   story.destroy!
-# end
 
 #
-# #9 Read next Step, for a given Step, if one is present
-# get '/nextstep'
-#   # step_id.read   conditional until?
-# end
+#9 Read next Step, for a given Step, if one is present
+get '/next_step/:step_id'
+  # step_id.read   conditional until?
+  # looks up next corresponding step in the db
+end

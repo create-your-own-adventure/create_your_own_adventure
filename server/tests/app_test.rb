@@ -114,24 +114,95 @@ class AppTest < Minitest::Test
 # 3:
   def test_can_update_a_story
     # skip
-    Story.where(name: "bizarro adventure")
-    response = patch name: "excellent adventure" # "/storyname"
-    json = JSON.parse(response.body)
+    story = Story.create(name: "bizarro story")
+    # response = get "/storyname"
+    # # binding.pry
+    # json = JSON.parse(response.body)   # ArgumentError: wrong number of arguments (given 0, expected 1..2)
+    # json.last["name"]
+    # binding.pry
+    # json.to_h.where("name" "Bizarro story")  # json is an array so I can't do this .where(name: "bizarro story")
     # patch ????
-    assert_equal new_story.name, json.last["name"]
+    # hash = { "name" => "more bizarro still" }
+    # new_response = patch "/storyname/:id"
+    # json = JSON.parse(request.body)
+    # assert_equal new_story.name, json.last["name"]
+    # patch "/storyname" do
+    #   new_story = Story.merge(JSON.parse(request.body.read))
+    #   new_story.to_json
+    # [{ "op": "replace", "path": "/storyname", "name": "more strange still" }]
+    # fake persistent data.
+    # DATA = { "a" => 1, "b" => 2, "c" => 3 }
+    # binding.pry
+    # get "/storyname" do
+    #   # put replaces the existing resource so we simply return the new resource
+    #   new_story = JSON.parse(request.body.read)
+    #   new_story.to_json
+
+  #   patch '/storyname' do
+  #     # patch 'patches' the existing resource
+  #     new_story = story.merge(JSON.parse(request.body.read))
+  #     new_story.to_json
+  #   # end
+  #   # binding.pry
+  #   # assert_equal "more strange still", json.last["name"]
+  # end
+  #    hash = { "storyupdate" => "Brand new bizarro story" }
+  #    new_response = patch("/storyupdate/#{story_id}", hash.to_json)
+  #    assert_equal "true", new_response.body
+  # #  end
+
+
+    # # Add token to header & create a new step
+    # header("AUTHORIZATION", body["token"])
+    # header("CONTENT_TYPE", "application/json")
+    # hash = { "name" => "Take the blue pill" }
+    # step_response = post("/new_step", hash.to_json)
+    # step = JSON.parse(step_response.body)
+    # step_id = step["id"]
+    #
+    # # Patch step to have a new name
+    # header("AUTHORIZATION", body["token"])
+    # header("CONTENT_TYPE", "application/json")
+    # hash = { "name" => "Take the red pill" }
+    # updated_step_response = patch("/story/#{story_id}/#{step_id}", hash.to_json)
+    #
+    # assert_equal "true", updated_step_response.body
+
   end
-# If the goal of patch is to "update/change" a an item, the best way I see is, create a Story/Step and
+# If the goal of patch is to "update/change" a an item, create a Story/Step and
 # then attempt to change it's name with your patch request.   And check your servers response that it now
 # has the new name, as well as that name being in the database
 
 
 # 4:
   def test_can_delete_a_story
-    skip
+    # skip
     story = Story.create
-    delete "/storyname/#{story.id}"
-    response = last_response.body
+    delete "/story_delete/#{:id}"
+    # response = last_response.body
+    # binding.pry
     assert_equal false, Story.exists?(story.id)
+  end
+
+# 5:
+  def test_can_create_a_ste
+  end
+
+# 6:
+  def test_can_read_a_step_to_json
+
+  end
+
+# 7:
+  def test_can_update_a_step
+  end
+
+# 8:
+  def test_can_destroy_a_step
+  end
+
+# 9:
+  def test_can_read_next_step_for_a_given_step
   end
 
 end
